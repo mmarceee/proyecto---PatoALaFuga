@@ -1,10 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
-version 43
 __lua__
---#include patoalafuga/patoalafuga.lua
-#include patoalafugaa/main.lua
-#include patoalafugaa/entidades.lua
-#include patoalafugaa/estados.lua
+#include proyecto---PatoALaFuga/main.lua
+#include proyecto---PatoALaFuga/entidades.lua
+#include proyecto---PatoALaFuga/estados.lua
 
 __gfx__
 00000000000a100000055000ccccccccbbbbbbbbcccccccccc3ccc3ccc4444cccc3333ccccc3bccc000000000000000000000000000000000000000000000000
