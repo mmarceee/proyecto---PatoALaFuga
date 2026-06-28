@@ -2,6 +2,7 @@
 
 -- Vista: Menú de Inicio
 function init_intro()
+    music(-1)
     -- Tabla para gestionar dinámicamente las opciones del menú
     opciones = {
         {nombre="vidas pato", val=3, min=1, max=5},
@@ -20,11 +21,13 @@ function upd_intro()
     -- 2. Navegación vertical (Arriba / Abajo)
     if btnp(2) then 
         sel_opc -= 1 
+        sfx(45)
         -- Si retrocedemos y caemos en "rol humano" pero el rival es humano, nos la saltamos
         if (sel_opc == 3 and not es_vs_cpu) sel_opc -= 1
     end 
     if btnp(3) then 
         sel_opc += 1 
+        sfx(45)
         -- Si avanzamos y caemos en "rol humano" pero el rival es humano, nos la saltamos
         if (sel_opc == 3 and not es_vs_cpu) sel_opc += 1
     end 
@@ -34,8 +37,14 @@ function upd_intro()
     
     -- 3. Modificar valor de la opción actual (Izquierda / Derecha)
     local op = opciones[sel_opc]
-    if btnp(0) then op.val -= 1 end 
-    if btnp(1) then op.val += 1 end 
+    if btnp(0) then 
+        op.val -= 1 
+        sfx(46)
+    end 
+    if btnp(1) then 
+        op.val += 1 
+        sfx(46)
+    end 
     
     -- Limitar los valores según el tipo de opción
     if op.min then
@@ -46,14 +55,28 @@ function upd_intro()
     
     -- Iniciar juego (Botón Z o X)
     if btnp(4) or btnp(5) then 
+        sfx(47)
         chg_vista("ingame") 
     end
 end
 
 function drw_intro()
-    cls()
+    cls(0)
+    
+    -- Fondo animado: Estrellas en el espacio
+    for i=1, 80 do
+        local speed = (i % 3) + 1
+        local x = (i * 73 - t() * speed * 15) % 128
+        local y = (i * 91) % 128
+        local col = 5 -- Azul oscuro para las lejanas
+        if speed == 2 then col = 6 end -- Gris para las medias
+        if speed == 3 then col = 7 end -- Blanco para las cercanas
+        
+        pset(x, y, col)
+    end
+    
     -- Título
-    print("pato a la fuga - v2.0", 22, 10, 11)
+    print("pato a la fuga", 38, 10, 11)
     print("configuracion de partida", 14, 25, 7)
     
     local es_vs_cpu = (opciones[2].val == 2)
@@ -89,19 +112,20 @@ end
 
 -- Vista: Juego principal
 function init_game()
-    ents = {} 
-    cazador = make_cazador()
-    pato = make_pato()
-    
-    -- Inyectar configuración del menú
+    music(0) -- Iniciar la música
+    -- Inyectar configuración del menú PRIMERO
     vidas_iniciales = opciones[1].val
-    pato.vida = vidas_iniciales
     tipo_rival = opciones[2].val -- 1: humano, 2: cpu
     rol_humano = opciones[3].val -- 1: cazador, 2: pato
     modo_juego = opciones[4].val -- 1: infinito, 2: acotado, 3: desafio
     escenario = opciones[5].val
+
+    ents = {} 
+    cazador = make_cazador()
+    pato = make_pato()
+    pato.vida = vidas_iniciales
     
-    -- Activar "interruptores" de Inteligencia Artificial
+    -- Activar "interruptores" de CPU
     cazador.is_cpu = (tipo_rival == 2 and rol_humano == 2)
     pato.is_cpu = (tipo_rival == 2 and rol_humano == 1)
     
@@ -180,8 +204,9 @@ end
 
 function drw_game()
     cls()
-    -- Cada escenario está ubicado a 16 tiles de distancia en horizontal (Bosque=0, Lago=16, Noche=32)
-    local mapa_x = (escenario - 1) * 16
+    -- Coordenadas X para cada mapa (Bosque=0, Lago=48, Selva=32)
+    local coords_x = {0, 48, 32}
+    local mapa_x = coords_x[escenario]
     map(mapa_x, 0, 0, 0, 16, 16) 
     
     drw_nubes()
@@ -202,6 +227,7 @@ end
 
 -- Vista: Fin de Juego
 function init_fin()
+    music(-1)
     ents = {} -- Vaciamos entidades para que no sigan sonando/moviéndose
     
     -- Inicializar partículas para la pantalla final

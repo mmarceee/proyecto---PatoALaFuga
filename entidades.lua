@@ -25,7 +25,13 @@ function make_entidad(px, py, sprite_id)
 end
 
 function make_cazador()
-    local c = make_entidad(60, 110, 2)
+    local sp_cazador = 2
+    local pos_y = 110
+    if escenario == 2 then 
+        sp_cazador = 34 
+        pos_y = 120
+    end
+    local c = make_entidad(60, pos_y, sp_cazador)
     c.vel = 2
     c.angulo = 0.25 -- Ángulo inicial: 0.25 apunta directamente hacia arriba
     
@@ -58,6 +64,7 @@ function make_cazador()
                     cos(c.angulo) * vel_bala, 
                     sin(c.angulo) * vel_bala
                 )
+                sfx(49)
             end
         else
             -- LÓGICA DE CPU DEL CAZADOR
@@ -87,6 +94,7 @@ function make_cazador()
                     c.x + 4, c.y, 
                     cos(c.angulo) * vel_bala, sin(c.angulo) * vel_bala
                 )
+                sfx(49)
                 
                 -- DIFICULTAD:
                 -- Reducimos el tiempo de espera según los segundos que hayan pasado.
@@ -99,8 +107,23 @@ function make_cazador()
                 c.cpu_timer = espera_base + rnd(espera_azar)
             end
         end
-        c.x = mid(0, c.x, 120)
+        local min_x, max_x = 0, 120
+        if escenario == 2 then
+            min_x, max_x = 8, 112
+        end
+        local old_x = c.x
         oupd()
+        c.x = mid(min_x, c.x, max_x)
+        
+        if c.dx != 0 then
+            if c.x == min_x and old_x > min_x then
+                sfx(51)
+            elseif c.x == max_x and old_x < max_x then
+                sfx(51)
+            elseif c.x > min_x and c.x < max_x then
+                if frames % 15 == 0 then sfx(50) end
+            end
+        end
     end
     
     local odrw = c.drw
@@ -145,6 +168,11 @@ function make_bala(px, py, dir_x, dir_y)
         if pato != nil then
             if abs(b.x - (pato.x + 4)) < 5 and abs(b.y - (pato.y + 4)) < 5 then
                 pato.vida -= 1
+                if pato.vida <= 0 then
+                    sfx(52)
+                else
+                    sfx(53)
+                end
                 del(ents, b)
                 return
             end
@@ -238,6 +266,11 @@ function make_pato()
             end
         end
         p.x = mid(0, p.x, 120)
+        
+        if frames % 8 == 4 then
+            sfx(48)
+        end
+        
         oupd()
     end
     
@@ -301,7 +334,8 @@ function init_nubes()
             x = rnd(128),
             y = rnd(60) + 10,     -- Altura aleatoria en la mitad superior
             vel = 0.1 + rnd(0.3), -- Velocidades diferentes
-            sp = 3 })              
+            sp = 3                
+        })
     end
 end
 
